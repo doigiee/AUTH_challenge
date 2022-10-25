@@ -2,10 +2,13 @@ from flask import Flask, jsonify
 app = Flask(__name__)
 
 from flask_marshmallow import Marshmallow
+from marshmallow.validate import Length
 ma = Marshmallow(app)
 
-from marshmallow.validate import Length
 
+
+from flask_bcrypt import Bcrypt
+bcrypt = Bcrypt(app)
 
 ## DB CONNECTION AREA
 
@@ -72,6 +75,21 @@ def seed_db():
         country = "USA"
     )
     db.session.add(actor4)
+
+    admin_user = User(
+        email = "admin",
+        username ="Josh",
+        password = "password123",
+        admin = True
+    )
+    db.session.add(admin_user)
+
+    user1 = User(
+        email = "user1",
+        username = "Bob",
+        password = "123456"
+    )
+    db.session.add(user1)
    
     db.session.commit()
     print("Tables seeded") 
@@ -104,6 +122,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(), nullable=False, unique=True)
+    username = db.Column(db.String(), nullable=False)
     password = db.Column(db.String(), nullable=False)
     admin = db.Column(db.Boolean(), default=False)
 
@@ -127,12 +146,15 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
         
-    fields = ("email", "password", "admin")    
-    #set the password's length to a minimum of 6 characters
-    password = ma.String(validate=Length(min=6))
+    fields = ("email", "username", "password", "admin")    
+    #set the password's length to a minimum of 8 characters
+    password = ma.String(validate=Length(min=8))
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
+
+
+
 
 # ROUTING AREA
 
